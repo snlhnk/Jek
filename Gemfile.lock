@@ -1,8 +1,12 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    ansi (1.5.0)
     backports (3.6.7)
-    diff-lcs (1.2.5)
+    minitest (5.8.3)
+    minitest-doc_reporter (0.6.0)
+      ansi
+      minitest (~> 5.0)
     multi_json (1.11.2)
     pdf-core (0.6.0)
     prawn (2.0.2)
@@ -13,19 +17,6 @@ GEM
       rack
     rack-test (0.6.3)
       rack (>= 1.0)
-    rspec (3.4.0)
-      rspec-core (~> 3.4.0)
-      rspec-expectations (~> 3.4.0)
-      rspec-mocks (~> 3.4.0)
-    rspec-core (3.4.1)
-      rspec-support (~> 3.4.0)
-    rspec-expectations (3.4.0)
-      diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.4.0)
-    rspec-mocks (3.4.0)
-      diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.4.0)
-    rspec-support (3.4.1)
     sinatra (1.4.6)
       rack (~> 1.4)
       rack-protection (~> 1.4)
@@ -44,7 +35,9 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  minitest
+  minitest-doc_reporter
   prawn
-  rspec
+  rack-test
   sinatra
   sinatra-contrib

@@ -7,5 +7,7 @@ gem "sinatra-contrib"
 gem "prawn"
 
 group :test, :development do
-  gem 'rspec'
+  gem 'rack-test'
+  gem 'minitest'
+  gem 'minitest-doc_reporter' # Rspec の様に spec のドキュメントを出力
 end
