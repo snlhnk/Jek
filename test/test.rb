@@ -32,12 +32,20 @@ describe '/proc に csv を POST した時に' do
     end
   end
 
-  it 'upload したファイルの内容が表示されること' do
+  it 'upload したファイルがそのまま download されること' do
+    require 'digest/md5'
+    upload_md5 = Digest::MD5.file(upload_csv)
     post '/proc' ,'file' => Rack::Test::UploadedFile.new(upload_csv,\
          'text/csv')
     assert last_response.ok?
-    assert last_response.body.include?(title_row)
-    assert last_response.body.include?(data_row)
+    download_md5 = Digest::MD5.hexdigest(last_response.body)
+    assert_equal(upload_md5, download_md5)
+  end
+
+  it 'response が attachment である(ダウンロードの形式になっている)こと' do
+    post '/proc' ,'file' => Rack::Test::UploadedFile.new(upload_csv,\
+         'text/csv')
+    assert last_response.header["Content-Disposition"].match(/attachment/)
   end
 end
 
