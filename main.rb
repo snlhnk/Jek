@@ -12,9 +12,7 @@ post "/proc" do
     @error = "No file selected"
   end
 
-  tmpfile.open do |t|
-    p t.gets
-  end
+  send_file(tmpfile, filename: 'test.csv')
 end
 
 __END__
