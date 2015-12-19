@@ -81,7 +81,7 @@ class Pdf < Prawn::Document
     when "j-goth"
       "/usr/local/share/font-mplus-ipa/fonts/ipagp.ttf"
     when "j-kaisho"
-      "./TKaisho-GT01_0.ttf"
+      "./assets/TKaisho-GT01_0.ttf"
     else
       "/usr/local/share/fonts/Carlito/Carlito-Regular.ttf"
     end
