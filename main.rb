@@ -1,5 +1,6 @@
 require 'sinatra'
 require 'sinatra/reloader'
+require './csv2pdf'
 
 get "/" do
   erb :index
@@ -12,7 +13,24 @@ post "/proc" do
     @error = "No file selected"
   end
 
-  send_file(tmpfile, filename: 'test.csv')
+  csv = CSV.open(tmpfile)
+  people = Array.new
+  csv.each do |c|
+    people << Person.new(c)
+  end
+
+  pdf = Pdf.new
+
+  n = people.length
+  people.each do |p|
+    pdf.stroke_address(p)
+    n -= 1
+    pdf.start_new_page if n > 0
+  end
+
+  pdf.render_file("./tmp/result.pdf")
+
+  send_file('./tmp/result.pdf', filename: 'result.pdf')
 end
 
 __END__
