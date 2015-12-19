@@ -20,6 +20,7 @@ make a pdf of Hagaki postcard addressing in vertical (tategaki) style from a CSV
 ## usage
 
 The source csv must have items below in this sequence:
+
 1. furigana (pronunciation)
 2. name in kanji
 3. title (-Sama etc)
@@ -31,4 +32,4 @@ The source csv must have items below in this sequence:
 9. family 2
 10. title for family 2
 
-You upload a source csv file, then download a pdf file. 
+After you upload a source csv file, you get a pdf file download.
