@@ -1,6 +1,7 @@
 ENV['RACK_ENV'] = 'test'
 require 'minitest/autorun'
 require 'rack/test'
+require 'digest/md5'
 require File.expand_path '../../main.rb', __FILE__
 
 include Rack::Test::Methods
@@ -14,38 +15,55 @@ describe '/ に GET した時に' do
     get '/'
     assert last_response.ok?
     md = last_response.body.match(/<\w*form.+>/)
-    assert md[0].include?("POST")
-    assert md[0].include?("/proc")
+    md[0].must_match /POST/
+    md[0].must_match /\/proc/
   end
 end
 
 describe '/proc に csv を POST した時に' do
-  upload_csv = "tmp/upload_csv.csv"
-  title_row = "col1, col2, col3"
-  data_row = "data1, data2, data3"
- 
-  before do
-    File.delete(upload_csv) if File.exist?(upload_csv)
-    File.open(upload_csv, 'w') do |f|
-      f.puts title_row
-      f.puts data_row
+  title_row = "kana, name, title, zip, \
+               addr1, addr2, family1, title1, family2, title2"
+  data1_row = "やまだ, 山田 太郎, 様, 100-0014, \
+               東京都千代田区永田町1丁目7-1, , , , , "
+  csv_file1 = "tmp/upload_csv1.csv"
+  data2_row = "さとう, 佐藤 花子, 様, 102-8651, \
+               東京都千代田区隼町4−2100-0014, 最高裁判所内, 二郎, 様 , , "
+  csv_file2 = "tmp/upload_csv2.csv"
+
+  def create_sample_file(filename, title, data)
+    File.delete(filename) if File.exist?(filename)
+    File.open(filename, 'w') do |f|
+      f.puts title
+      f.puts data
     end
   end
-
-  it 'upload したファイルがそのまま download されること' do
-    require 'digest/md5'
-    upload_md5 = Digest::MD5.file(upload_csv)
-    post '/proc' ,'file' => Rack::Test::UploadedFile.new(upload_csv,\
-         'text/csv')
-    assert last_response.ok?
-    download_md5 = Digest::MD5.hexdigest(last_response.body)
-    assert_equal(upload_md5, download_md5)
+ 
+  before do
+    create_sample_file(csv_file1, title_row, data1_row)
+    create_sample_file(csv_file2, title_row, data2_row)
   end
 
   it 'response が attachment である(ダウンロードの形式になっている)こと' do
-    post '/proc' ,'file' => Rack::Test::UploadedFile.new(upload_csv,\
+    post '/proc' ,'file' => Rack::Test::UploadedFile.new(csv_file1,\
          'text/csv')
-    assert last_response.header["Content-Disposition"].match(/attachment/)
+    assert last_response.ok?
+    last_response.header["Content-Disposition"].must_match /attachment/
+  end
+
+  it 'download されるファイルが pdf であること' do
+    post '/proc' ,'file' => Rack::Test::UploadedFile.new(csv_file1,\
+         'text/csv')
+    last_response.body.must_match /^%PDF/
+  end
+
+  it '異なるデータからは異なる pdf が作られること' do
+    post '/proc' ,'file' => Rack::Test::UploadedFile.new(csv_file1,\
+         'text/csv')
+    download1_md5 = Digest::MD5.hexdigest(last_response.body)
+    post '/proc' ,'file' => Rack::Test::UploadedFile.new(csv_file2,\
+         'text/csv')
+    download2_md5 = Digest::MD5.hexdigest(last_response.body)
+    download1_md5.wont_equal download2_md5
   end
 end
 
