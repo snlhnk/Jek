@@ -1,6 +1,7 @@
 ENV['RACK_ENV'] = 'test'
 require 'minitest/autorun'
 require 'rack/test'
+require 'tilt/erb'
 require 'digest/md5'
 require File.expand_path '../../main.rb', __FILE__
 
@@ -20,7 +21,7 @@ describe '/ に GET した時に' do
   end
 end
 
-describe '/proc に csv を POST した時に' do
+describe '/proc に有効な csv を POST した時に' do
 #  title_row = "kana,name,title,zip,addr1,addr2,family1,title1,family2,title2"
   data1_row = "やまだ,山田 太郎,様,100-0014,東京都千代田区永田町1丁目7-1,,,,,"
   csv_file1 = "tmp/upload_csv1.csv"
@@ -50,6 +51,7 @@ describe '/proc に csv を POST した時に' do
     post '/proc' ,'file' => Rack::Test::UploadedFile.new(csv_file1,\
          'text/csv')
     last_response.body.must_match /^%PDF/
+    last_response.header["Content-Type"].must_include "application/pdf"
   end
 
   it '異なるデータからは異なる pdf が作られること' do
@@ -62,4 +64,3 @@ describe '/proc に csv を POST した時に' do
     download1_md5.wont_equal download2_md5
   end
 end
-
