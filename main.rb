@@ -82,7 +82,7 @@ __END__
 以下のデータはPDFに変換できませんでした。
 <hr>
 <% @errors.each do |e| %>
-  <%= p e %>
+  <%= e.to_s %>
 <% end %>
 </body>
 </html>

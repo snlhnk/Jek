@@ -84,7 +84,7 @@ describe '/proc に不正な csv を POST した時に' do
     create_sample_file(csv_file, [data_invalid1])
     post '/proc' ,'file' => Rack::Test::UploadedFile.new(csv_file,\
          'text/csv')
-    last_response.body.must_match /E|error/
+    last_response.body.must_match /[Ee]rror/
     last_response.body.must_match Regexp.new(data_invalid1[0..2])
   end
 
@@ -93,7 +93,7 @@ describe '/proc に不正な csv を POST した時に' do
     post '/proc' ,'file' => Rack::Test::UploadedFile.new(csv_file,\
          'text/csv')
     assert last_response.ok?
-    last_response.body.must_match /E|error/
+    last_response.body.must_match /[Ee]rror/
     last_response.body.wont_match Regexp.new(data_valid[0..2])
     last_response.body.must_match Regexp.new(data_invalid2[0..2])
   end
