@@ -146,7 +146,7 @@ class Pdf < Prawn::Document
   end
 
   def split_name(name)
-    retrun nil, nil if not name
+    return nil, nil if not name
     n = name.split(/ |　/)
     f_name = n[0].split("")
     if n.length > 1
