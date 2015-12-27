@@ -2,9 +2,10 @@ require 'sinatra'
 require 'sinatra/reloader'
 require './csv2pdf'
 
+Output_file = "./tmp/result.pdf"
+
 def make_pdf(people)
   pdf = Pdf.new
-  output_file = "./tmp/result.pdf"
 
   n = people.length
   people.each do |p|
@@ -13,8 +14,7 @@ def make_pdf(people)
     pdf.start_new_page if n > 0
   end
 
-  pdf.render_file(output_file)
-  send_file(output_file, filename: File.basename(output_file))
+  pdf.render_file(Output_file)
 end
 
 get "/" do
@@ -29,21 +29,27 @@ post "/proc" do
   end
 
   csv = CSV.open(tmpfile)
-  people = Array.new
+  @people = Array.new
   @errors = Array.new
   csv.each do |c|
     begin
-      people << Person.new(c)
+      @people << Person.new(c)
     rescue
       @errors << c
     end
   end
 
+  make_pdf(@people) if @people.length > 0
+
   if @errors.length == 0
-    make_pdf(people)
+    send_file(Output_file, filename: File.basename(Output_file))
   else
     erb :proc_error
   end
+end
+
+get "/download" do
+  send_file(Output_file, filename: File.basename(Output_file))
 end
 
 __END__
@@ -79,8 +85,12 @@ __END__
 <html>
 <body>
 <h1>error</h1>
-以下のデータはPDFに変換できませんでした。
+<% if @people.length > 0 %>
+  <%= "<a href=\"/download\">PDFダウンロード</a>" %>
+<% end %>
 <hr>
+以下のデータはPDFに変換できませんでした。
+<p>
 <% @errors.each do |e| %>
   <%= e.to_s %>
 <% end %>
