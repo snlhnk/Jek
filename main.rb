@@ -2,6 +2,21 @@ require 'sinatra'
 require 'sinatra/reloader'
 require './csv2pdf'
 
+def make_pdf(people)
+  pdf = Pdf.new
+  output_file = "./tmp/result.pdf"
+
+  n = people.length
+  people.each do |p|
+    pdf.stroke_address(p)
+    n -= 1
+    pdf.start_new_page if n > 0
+  end
+
+  pdf.render_file(output_file)
+  send_file(output_file, filename: File.basename(output_file))
+end
+
 get "/" do
   erb :index
 end
@@ -15,22 +30,20 @@ post "/proc" do
 
   csv = CSV.open(tmpfile)
   people = Array.new
+  @errors = Array.new
   csv.each do |c|
-    people << Person.new(c)
+    begin
+      people << Person.new(c)
+    rescue
+      @errors << c
+    end
   end
 
-  pdf = Pdf.new
-
-  n = people.length
-  people.each do |p|
-    pdf.stroke_address(p)
-    n -= 1
-    pdf.start_new_page if n > 0
+  if @errors.length == 0
+    make_pdf(people)
+  else
+    erb :proc_error
   end
-
-  pdf.render_file("./tmp/result.pdf")
-
-  send_file('./tmp/result.pdf', filename: 'result.pdf')
 end
 
 __END__
@@ -59,5 +72,17 @@ __END__
   <li>併記家族(2)
   <li>その敬称(2)
 </ol>
+</body>
+</html>
+
+@@ proc_error
+<html>
+<body>
+<h1>error</h1>
+以下のデータはPDFに変換できませんでした。
+<hr>
+<% @errors.each do |e| %>
+  <%= p e %>
+<% end %>
 </body>
 </html>

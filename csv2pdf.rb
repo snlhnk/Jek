@@ -16,6 +16,9 @@ class Person
     @title1 = csv_row[7]
     @family2 = csv_row[8]
     @title2 = csv_row[9]
+    if not (@name and @addr1)
+      raise "format error"
+    end
   end
 
   def address
