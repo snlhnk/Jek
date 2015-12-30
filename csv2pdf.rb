@@ -8,8 +8,12 @@ class Person
   def initialize(csv_row)
     @kana = csv_row[0]
     @name = csv_row[1]
-    @title = csv_row[2]
-    @zip = csv_row[3]
+    if csv_row[2]
+      @title = csv_row[2]
+    else
+      @title = '様'
+    end
+    @zip = csv_row[3].gsub('〒','')
     @addr1 = csv_row[4]
     @addr2 = csv_row[5]
     @family1 = csv_row[6]

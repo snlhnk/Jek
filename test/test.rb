@@ -117,30 +117,35 @@ describe '/proc に有効だが不完全な csv を POST した時に' do
   data_correct = "やまだ,山田 太郎,様,100-0014,東京都千代田区永田町1丁目7-1,,,,,"
   csv_file = "tmp/upload_csv.csv"
 
+  before do
+#    create_sample_file(csv_file, [data_correct])
+#    post '/proc' ,'file' => Rack::Test::UploadedFile.new(csv_file,\
+#         'text/csv')
+#    download_correct_md5 = Digest::MD5.hexdigest(last_response.body)
+  end
+
   it '郵便番号に〒マークが入っていても正しく pdf が作成されること' do
-    create_sample_file(csv_file, [data_correct])
-    post '/proc' ,'file' => Rack::Test::UploadedFile.new(csv_file,\
-         'text/csv')
-    download_correct_md5 = Digest::MD5.hexdigest(last_response.body)
     create_sample_file(csv_file, \
                   [data_correct.gsub('100-0014', '〒100-0014')])
     post '/proc' ,'file' => Rack::Test::UploadedFile.new(csv_file,\
          'text/csv')
     assert last_response.ok?
-    download_incorrect_md5 = Digest::MD5.hexdigest(last_response.body)
-    download_correct_md5.must_equal download_incorrect_md5
+    last_response.header["Content-Disposition"].must_match /attachment/
+    last_response.body.must_match /^%PDF/
+    last_response.header["Content-Type"].must_include "application/pdf"
+#    download_incorrect_md5 = Digest::MD5.hexdigest(last_response.body)
+#    download_correct_md5.must_equal download_incorrect_md5
   end
 
   it '敬称が空欄でも様をつけて pdf が作成されること' do
-    create_sample_file(csv_file, [data_correct])
-    post '/proc' ,'file' => Rack::Test::UploadedFile.new(csv_file,\
-         'text/csv')
-    download_correct_md5 = Digest::MD5.hexdigest(last_response.body)
     create_sample_file(csv_file, [data_correct.gsub('様', '')])
     post '/proc' ,'file' => Rack::Test::UploadedFile.new(csv_file,\
          'text/csv')
     assert last_response.ok?
-    download_incorrect_md5 = Digest::MD5.hexdigest(last_response.body)
-    download_correct_md5.must_equal download_incorrect_md5
+    last_response.header["Content-Disposition"].must_match /attachment/
+    last_response.body.must_match /^%PDF/
+    last_response.header["Content-Type"].must_include "application/pdf"
+#    download_incorrect_md5 = Digest::MD5.hexdigest(last_response.body)
+#    download_correct_md5.must_equal download_incorrect_md5
   end
 end
