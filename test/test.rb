@@ -30,6 +30,13 @@ def create_sample_file(filename, data_array)
   end
 end
 
+def write_pdf(filename, pdfdata)
+  File.delete(filename) if File.exist?(filename)
+  File.open(filename, 'w') do |f|
+    f.puts pdfdata
+  end
+end
+
 describe '/proc に有効な csv を POST した時に' do
   data1 = "やまだ,山田 太郎,様,100-0014,東京都千代田区永田町1丁目7-1,,,,,"
   data2 = "さとう,佐藤 花子,様,102-8651,東京都千代田区隼町4-2100-0014,最高裁判所内,二郎,様,,"
@@ -114,14 +121,18 @@ describe '/proc に不正な csv を POST した時に' do
 end
 
 describe '/proc に有効だが不完全な csv を POST した時に' do
+  require 'poppler'
   data_correct = "やまだ,山田 太郎,様,100-0014,東京都千代田区永田町1丁目7-1,,,,,"
   csv_file = "tmp/upload_csv.csv"
+  pdf_file = "tmp/download.pdf"
 
   before do
-#    create_sample_file(csv_file, [data_correct])
-#    post '/proc' ,'file' => Rack::Test::UploadedFile.new(csv_file,\
-#         'text/csv')
-#    download_correct_md5 = Digest::MD5.hexdigest(last_response.body)
+    create_sample_file(csv_file, [data_correct])
+    post '/proc' ,'file' => Rack::Test::UploadedFile.new(csv_file,\
+         'text/csv')
+    write_pdf(pdf_file, last_response.body)
+    @download_correct_md5 = Digest::MD5.hexdigest\
+      (Poppler::Document.new(pdf_file).get_page("1").get_text)
   end
 
   it '郵便番号に〒マークが入っていても正しく pdf が作成されること' do
@@ -133,8 +144,10 @@ describe '/proc に有効だが不完全な csv を POST した時に' do
     last_response.header["Content-Disposition"].must_match /attachment/
     last_response.body.must_match /^%PDF/
     last_response.header["Content-Type"].must_include "application/pdf"
-#    download_incorrect_md5 = Digest::MD5.hexdigest(last_response.body)
-#    download_correct_md5.must_equal download_incorrect_md5
+    write_pdf(pdf_file, last_response.body)
+    download_incorrect_md5 = Digest::MD5.hexdigest\
+      (Poppler::Document.new(pdf_file).get_page("1").get_text)
+    download_incorrect_md5.must_equal @download_correct_md5
   end
 
   it '敬称が空欄でも様をつけて pdf が作成されること' do
@@ -145,7 +158,9 @@ describe '/proc に有効だが不完全な csv を POST した時に' do
     last_response.header["Content-Disposition"].must_match /attachment/
     last_response.body.must_match /^%PDF/
     last_response.header["Content-Type"].must_include "application/pdf"
-#    download_incorrect_md5 = Digest::MD5.hexdigest(last_response.body)
-#    download_correct_md5.must_equal download_incorrect_md5
+    write_pdf(pdf_file, last_response.body)
+    download_incorrect_md5 = Digest::MD5.hexdigest\
+      (Poppler::Document.new(pdf_file).get_page("1").get_text)
+    download_incorrect_md5.must_equal @download_correct_md5
   end
 end

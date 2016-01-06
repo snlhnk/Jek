@@ -10,4 +10,5 @@ group :test, :development do
   gem 'rack-test'
   gem 'minitest'
   gem 'minitest-doc_reporter' # Rspec の様に spec のドキュメントを出力
+  gem 'poppler'
 end
